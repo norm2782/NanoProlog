@@ -22,7 +22,7 @@ Source-repository head
 
 Executable nano-prolog
   Hs-source-dirs: src
-  main-is: NanoProlog.hs
+  Main-is: Language/Prolog/NanoProlog.hs
 
   Build-depends:
     base >= 4 && < 5,
