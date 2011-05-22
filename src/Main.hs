@@ -29,7 +29,7 @@ loop rules = do  putStr "goal? "
                        if null errors
                          then  printSolutions (print goal) ["0"] (solve rules  emptyEnv 0 [goal])
                          else  do  putStrLn "Some goals were expected:"
-                                   mapM_ (putStrLn.show) errors
+                                   mapM_ print errors
                        loop rules
 
 
@@ -55,5 +55,5 @@ printEnv  bs =  putStr (intercalate ", " . filter (not.null) . map  showBdg $ bs
                                        | otherwise = ""   
                     showTerm t@(Var _)  = showTerm (subst bs t) 
                     showTerm (Fun f []) = f 
-                    showTerm (Fun f ts) = f ++"("++ (intercalate ", " (map showTerm ts)) ++ ")"
+                    showTerm (Fun f ts) = f ++"("++ intercalate ", " (map showTerm ts) ++ ")"
                     isGlobVar x = head x `elem` ['A'..'Z'] && last x `notElem` ['0'..'9']   
