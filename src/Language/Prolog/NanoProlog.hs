@@ -1,8 +1,20 @@
-
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE FlexibleContexts #-}
 
-module Language.Prolog.NanoProlog (Term(..),Rule((:<-:)),LowerCase,unify,subst,startParse,pRule,pTerm) where
+module Language.Prolog.NanoProlog (
+    Term(..)
+  , Rule((:<-:))
+  , LowerCase
+  , unify
+  , subst
+  , startParse
+  , pRule
+  , pTerm
+  , pFun
+  , printSolutions
+  , emptyEnv
+  , solve
+  ) where
 
 import            Data.ListLike.Base (ListLike)
 import            Data.List (intercalate)
@@ -66,33 +78,6 @@ solve rules  e  n  (t:ts)
    =  ApplyRules [ (rule, solve rules (unify (t, c) e) (n+1) (cs ++ ts)) 
                  | rule@(c :<-: cs)   <- tag n rules 
                  ]
-
--- * Running the Interpreter
--- ** The main interpreter
--- | The `main` program prompt for a file with Prolog rules and call the main interpreter loop
-main :: IO ()
-main = do  hSetBuffering stdin LineBuffering
-           putStr "File with rules? "
-           fn  <- getLine
-           s   <- readFile fn
-           let (rules, errors) = startParse (pList pRule)  s
-           if Prelude.null errors then  do  mapM_ print rules
-                                            loop rules
-                                  else  do  putStrLn "No rules parsed"
-                                            mapM_ print errors
-                                            main
-
--- | `loop` ask for a goal, and enuartes all solutions found, each preceded by a trace conatining the rules applied in a tree-like fashion
-loop :: [Rule] -> IO ()
-loop rules = do  putStr "goal? "
-                 s <- getLine
-                 unless (s == "quit") $
-                   do  let (goal, errors) = startParse  pFun s
-                       if null errors
-                         then  printSolutions (print goal) ["0"] (solve rules  emptyEnv 0 [goal])
-                         else  do  putStrLn "Some goals were expected:"
-                                   mapM_ (putStrLn.show) errors
-                       loop rules
 
 -- ** Printing the solutions
 -- | `printSolutions` performs a depth-first walk over the `Result` tree, while accumulating the rules that were applied on the path which was traversed from the root to the current node. At a successful leaf tis contains the full proof
