@@ -2,18 +2,20 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 module Language.Prolog.NanoProlog (
-    Term(..)
-  , Rule((:<-:))
+    Env
   , LowerCase
-  , unify
+  , Result(..)
+  , Rule((:<-:))
+  , Term(..)
+  , emptyEnv
   , subst
-  , startParse
+  , pFun
+  , pList
   , pRule
   , pTerm
-  , pFun
-  , printSolutions
-  , emptyEnv
   , solve
+  , startParse
+  , unify
   ) where
 
 import            Data.ListLike.Base (ListLike)
@@ -21,7 +23,6 @@ import            Data.List (intercalate)
 import            Text.ParserCombinators.UU
 import            Text.ParserCombinators.UU.BasicInstances
 import            Text.ParserCombinators.UU.Utils
-import            System.IO
 
 
 -- * Types
@@ -78,31 +79,6 @@ solve rules  e  n  (t:ts)
    =  ApplyRules [ (rule, solve rules (unify (t, c) e) (n+1) (cs ++ ts)) 
                  | rule@(c :<-: cs)   <- tag n rules 
                  ]
-
--- ** Printing the solutions
--- | `printSolutions` performs a depth-first walk over the `Result` tree, while accumulating the rules that were applied on the path which was traversed from the root to the current node. At a successful leaf tis contains the full proof
-printSolutions :: IO () -> [String] -> Result -> IO ()
-printSolutions prProof _ (Done env)     = do prProof
-                                             putStr "solution: "
-                                             printEnv env
-                                             getLine
-                                             return ()
-printSolutions _       _ None           = return ()
-printSolutions prProof (pr:prefixes) (ApplyRules  bs) 
-    = sequence_ [ printSolutions (prProof >> putStrLn  (pr ++ " " ++ show rule))  (extraPrefixes++prefixes) result 
-                | (rule@(c :<-: cs), result) <-  bs
-                , let extraPrefixes = take (length cs) (map (\i -> pr ++ "." ++ show i) [(1 :: Int) ..])
-                ]
-
--- | `printEnv` prints a single solution, shwoing only the variables that were introduced in the original goal
-printEnv :: Env -> IO ()
-printEnv  bs =  putStr (intercalate ", " . filter (not.null) . map  showBdg $ bs)
-             where  showBdg (    x,t)  | isGlobVar x =  x ++ " <- "++ showTerm t 
-                                       | otherwise = ""   
-                    showTerm t@(Var _)  = showTerm (subst bs t) 
-                    showTerm (Fun f []) = f 
-                    showTerm (Fun f ts) = f ++"("++ (intercalate ", " (map showTerm ts)) ++ ")"
-                    isGlobVar x = head x `elem` ['A'..'Z'] && last x `notElem` ['0'..'9']   
 
 instance Show Term where
   show (Var  i)      = i
