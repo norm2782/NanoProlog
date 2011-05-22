@@ -1,0 +1,29 @@
+Name:                NanoProlog
+Version:             0.1
+Synopsis:            Very small  interpreter for a Prolog-like language
+Description:         This package was developed to demonstrate the ideas behind
+                     the Prolog language. It contains a very small interpreter
+                     (@Language.prolog.Nanoprolog@) which can be run on its
+                     own. It reads a file with definitions, and then prompts
+                     for a goal. All possibe solutions are printed, preceded by
+                     a tree showing which rules were applied in which order.
+License:             BSD3
+license-file:        LICENSE
+Author:              Jurriën Stutterheim, Doaitse Swierstra
+Maintainer:          Jurriën Stutterheim
+Stability:           Experimental
+Category:            Language
+Build-type:          Simple
+Cabal-version:       >= 1.6
+
+Source-repository head
+  Type:       git
+  Location:   https://github.com/norm2782/NanoProlog.git
+
+Executable nano-prolog
+  Hs-source-dirs: src
+  main-is: NanoProlog.hs
+
+  Build-depends:
+    base >= 4 && < 5,
+    uu-parsinglib >= 2.7.1
