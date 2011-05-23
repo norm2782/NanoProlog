@@ -114,7 +114,7 @@ enumerateBreadthFirst :: [(String, Rule)] -> [String] -> Result -> [([(String, R
 
 -- | `printEnv` prints a single solution, showing only the variables
 -- that were introduced in the original goal
-show' :: Env -> [Char]
+show' :: Env -> String
 show' env = intercalate ", " . filter (not.null) . map  showBdg $ M.assocs env
              where  showBdg (x, t)  | isGlobVar x =  x ++ " <- "++ showTerm t
                                     | otherwise = ""
