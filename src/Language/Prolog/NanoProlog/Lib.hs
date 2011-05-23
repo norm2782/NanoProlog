@@ -85,7 +85,7 @@ unify (t, u)  env@(Just m)  = uni (subst m t) (subst m u)
            | otherwise                         = Nothing
 
 solve :: [Rule] -> Maybe Env -> Int -> [Term] -> Result
-solve _      Nothing   _  _       = None
+solve _      Nothing   _  _       = ApplyRules []
 solve _      (Just e)  _  []      = Done e
 solve rules  e         n  (t:ts)  = ApplyRules
   [  (rule, solve rules nextenv (n+1) (cs ++ ts))
