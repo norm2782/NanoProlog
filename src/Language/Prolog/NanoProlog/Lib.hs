@@ -7,6 +7,8 @@ module Language.Prolog.NanoProlog.Lib (
      LowerCase
   ,  Result(..)
   ,  Rule((:<-:))
+  ,  Subst(..)
+  ,  Taggable(..)
   ,  Term(..)
   ,  emptyEnv
   ,  enumerateDepthFirst
@@ -15,7 +17,6 @@ module Language.Prolog.NanoProlog.Lib (
   ,  pTerm
   ,  show'
   ,  solve
-  ,  subst
   ,  startParse
   ,  unify
   ) where
