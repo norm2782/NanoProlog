@@ -3,7 +3,7 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
 
-module Language.Prolog.NanoProlog.Main where
+module Main where
 
 import            Language.Prolog.NanoProlog.Lib
 import            Text.ParserCombinators.UU
@@ -19,11 +19,11 @@ main = do  hSetBuffering stdin LineBuffering
            fn  <- getLine
            s   <- readFile fn
            let (rules, errors) = startParse (pList pRule)  s
-           if null errors then  do  mapM_ print rules
-                                    loop rules
-                          else  do  putStrLn "No rules parsed"
-                                    mapM_ print errors
-                                    main
+           if null errors  then  do  mapM_ print rules
+                                     loop rules
+                           else  do  putStrLn "No rules parsed"
+                                     mapM_ print errors
+                                     main
 
 -- | `loop` ask for a goal, and enuartes all solutions found, each preceded by
 -- a trace conatining the rules applied in a tree-like fashion
