@@ -48,10 +48,10 @@ loop rules = do  putStr "goal? "
 -- the proofs much shorter, but a bit less complete.
 printSolutions ::  Result -> IO ()
 printSolutions result = sequence_
-  [  do  sequence_ [ putStrLn (prefix ++ " " ++  show (subst env pr))
-                   | (prefix, pr@(p :<-: pp)) <- reverse proof
---                 , length pp >0
-                   ]
+  [  do  sequence_  [  putStrLn (prefix ++ " " ++ show (subst env pr))
+                    |  (prefix, pr@(p :<-: pp)) <- reverse proof
+--                  ,  length pp >0
+                    ]
          putStr "substitution: "
          putStrLn (show' env)
          void getLine

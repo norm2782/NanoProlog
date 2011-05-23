@@ -15,6 +15,7 @@ module Language.Prolog.NanoProlog.Lib (
   ,  pFun
   ,  pRule
   ,  pTerm
+  ,  pTerms
   ,  show'
   ,  solve
   ,  startParse
@@ -59,8 +60,10 @@ emptyEnv :: Maybe (Map UpperCase t)
 emptyEnv = Just M.empty
 
 -- * The Prolog machinery
-data Result = Done Env
-            | ApplyRules [(Rule, Result)]
+data Result  =  Done Env
+             |  ApplyRules [(Rule, Result)]
+
+type Proofs = [(String, Rule)]
 
 class Subst t where
   subst :: Env -> t -> t
@@ -78,19 +81,19 @@ instance Subst Rule where
 unify :: (Term, Term) -> Maybe Env-> Maybe Env
 unify _       Nothing       = Nothing
 unify (t, u)  env@(Just m)  = uni (subst m t) (subst m u)
-  where  uni (Var x)  y        = Just (M.insert x  y  m)
-         uni x        (Var y)  = Just (M.insert y  x  m)
-         uni (Fun x xs) (Fun y ys)
-           | x == y && length xs == length ys  = foldr unify env (zip xs ys)
-           | otherwise                         = Nothing
+  where  uni  (Var x)  y        = Just (M.insert x  y  m)
+         uni  x        (Var y)  = Just (M.insert y  x  m)
+         uni  (Fun x xs) (Fun y ys)
+           |  x == y && length xs == length ys  = foldr unify env (zip xs ys)
+           |  otherwise                         = Nothing
 
 solve :: [Rule] -> Maybe Env -> Int -> [Term] -> Result
 solve _      Nothing   _  _       = ApplyRules []
 solve _      (Just e)  _  []      = Done e
 solve rules  e         n  (t:ts)  = ApplyRules
   [  (rule, solve rules nextenv (n+1) (cs ++ ts))
-  |  rule@(c :<-: cs) <- tag n rules 
-  ,  nextenv@(Just _) <- [unify (t, c) e]
+  |  rule@(c :<-: cs)  <- tag n rules
+  ,  nextenv@(Just _)  <- [unify (t, c) e]
   ]
 
 -- ** Printing the solutions | `enumerateBreadthFirst` performs a
@@ -98,39 +101,39 @@ solve rules  e         n  (t:ts)  = ApplyRules
 -- rules that were applied on the path which was traversed from the
 -- root to the current node. At a successful leaf this contains the
 -- full proof.
-enumerateDepthFirst :: [(String, Rule)] -> [String] -> Result -> [([(String, Rule)], Env)]
+enumerateDepthFirst :: Proofs -> [String] -> Result -> [(Proofs, Env)]
 enumerateDepthFirst proofs _ (Done env) = [(proofs, env)]
-enumerateDepthFirst proofs (pr:prefixes) (ApplyRules bs) = 
-   [ s  |  (rule@(c :<-: cs), subTree) <-  bs
-        ,  let extraPrefixes = take (length cs) (map (\i -> pr ++ "." ++ show i) [1 ..])
-        ,  s <- enumerateDepthFirst ((pr, rule):proofs) (extraPrefixes ++ prefixes) subTree
-   ]
+enumerateDepthFirst proofs (pr:prefixes) (ApplyRules bs) =
+  [ s  |  (rule@(c :<-: cs), subTree) <- bs
+       ,  let extraPrefixes = take (length cs) (map (\i -> pr ++ "." ++ show i) [1 ..])
+       ,  s <- enumerateDepthFirst ((pr, rule):proofs) (extraPrefixes ++ prefixes) subTree
+  ]
 
 {-
 -- | `enumerateBreadthFirst` is still undefined, and is left as an
 -- exercise to the JCU students
-enumerateBreadthFirst :: [(String, Rule)] -> [String] -> Result -> [([(String, Rule)], Env)]
+enumerateBreadthFirst :: Proofs -> [String] -> Result -> [(Proofs, Env)]
 -}
 
 -- | `printEnv` prints a single solution, showing only the variables
 -- that were introduced in the original goal
 show' :: Env -> String
 show' env = intercalate ", " . filter (not.null) . map  showBdg $ M.assocs env
-             where  showBdg (x, t)  | isGlobVar x =  x ++ " <- "++ showTerm t
-                                    | otherwise = ""
-                    showTerm t@(Var _)  = showTerm (subst env t)
-                    showTerm (Fun f []) = f
-                    showTerm (Fun f ts) = f ++"("++ intercalate ", " (map showTerm ts) ++ ")"
-                    isGlobVar x = head x `elem` ['A'..'Z'] && last x `notElem` ['0'..'9']
+  where  showBdg (x, t)  | isGlobVar x =  x ++ " <- "++ showTerm t
+                         | otherwise = ""
+         showTerm t@(Var _)  = showTerm (subst env t)
+         showTerm (Fun f []) = f
+         showTerm (Fun f ts) = f ++ "(" ++ intercalate ", " (map showTerm ts) ++ ")"
+         isGlobVar x = head x `elem` ['A'..'Z'] && last x `notElem` ['0'..'9']
 
 instance Show Term where
-  show (Var  i)      = i
-  show (Fun  i [] )  = i
-  show (Fun  i ts )  = i ++ "(" ++ showCommas ts ++ ")"
+  show (Var  i)       = i
+  show (Fun  i []  )  = i
+  show (Fun  i ts  )  = i ++ "(" ++ showCommas ts ++ ")"
 
 instance Show Rule where
-  show (t :<-: [] ) = show t ++ "."
-  show (t :<-: ts ) = show t ++ ":-" ++ showCommas ts ++ "."
+  show (t :<-: []  ) = show t ++ "."
+  show (t :<-: ts  ) = show t ++ ":-" ++ showCommas ts ++ "."
 
 showCommas :: Show a => [a] -> String
 showCommas l = intercalate ", " (map show l)
@@ -145,9 +148,8 @@ pTerm, pVar, pFun :: Parser Term
 pTerm  = pVar  <|>  pFun
 pVar   = Var   <$>  lexeme (pList1 pUpper)
 pFun   = Fun   <$>  pLowerCase <*> (pParens pTerms `opt` [])
-       where pLowerCase :: Parser String
-             pLowerCase = (:)  <$> pLower
-                               <*> lexeme (pList (pLetter <|> pDigit))
+  where  pLowerCase :: Parser String
+         pLowerCase = (:) <$> pLower <*> lexeme (pList (pLetter <|> pDigit))
 
 pRule :: Parser Rule
 pRule = (:<-:) <$> pFun <*> (pSymbol ":-" *> pTerms `opt` []) <* pDot
