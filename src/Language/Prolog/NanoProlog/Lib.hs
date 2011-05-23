@@ -59,8 +59,7 @@ emptyEnv :: Maybe (Map UpperCase t)
 emptyEnv = Just M.empty
 
 -- * The Prolog machinery
-data Result = None
-            | Done Env
+data Result = Done Env
             | ApplyRules [(Rule, Result)]
 
 class Subst t where
@@ -89,8 +88,10 @@ solve :: [Rule] -> Maybe Env -> Int -> [Term] -> Result
 solve _      Nothing   _  _       = None
 solve _      (Just e)  _  []      = Done e
 solve rules  e         n  (t:ts)  = ApplyRules
-  [  (rule, solve rules (unify (t, c) e) (n+1) (cs ++ ts))
-  |  rule@(c :<-: cs) <- tag n rules ]
+  [  (rule, solve rules nextenv (n+1) (cs ++ ts))
+  |  rule@(c :<-: cs) <- tag n rules 
+  ,  nextenv@(Just _) <- [unify (t, c) e]
+  ]
 
 -- ** Printing the solutions | `enumerateBreadthFirst` performs a
 -- depth-first walk over the `Result` tree, while accumulating the
@@ -99,7 +100,6 @@ solve rules  e         n  (t:ts)  = ApplyRules
 -- full proof.
 enumerateDepthFirst :: [(String, Rule)] -> [String] -> Result -> [([(String, Rule)], Env)]
 enumerateDepthFirst proofs _ (Done env) = [(proofs, env)]
-enumerateDepthFirst proofs _ None       = []
 enumerateDepthFirst proofs (pr:prefixes) (ApplyRules bs) = 
    [ s  |  (rule@(c :<-: cs), subTree) <-  bs
         ,  let extraPrefixes = take (length cs) (map (\i -> pr ++ "." ++ show i) [1 ..])
