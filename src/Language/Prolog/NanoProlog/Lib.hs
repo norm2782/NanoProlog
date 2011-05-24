@@ -33,19 +33,22 @@ import            Text.ParserCombinators.UU.Utils
 -- * Types
 type UpperCase  = String
 type LowerCase  = String
+type Tag        = String
 
 data Term  =  Var UpperCase
            |  Fun LowerCase [Term]
            deriving (Eq, Ord)
 
+type TaggedTerm = (Tag, Term)
+
 data Rule  =  Term :<-: [Term]
            deriving Eq
 
 class Taggable a where
-  tag :: Int -> a -> a
+  tag :: Tag -> a -> a
 
 instance Taggable Term where
-  tag n (Var  x)     = Var  (x ++ show n)
+  tag n (Var  x)     = Var  (x ++ n)
   tag n (Fun  x xs)  = Fun  x (tag n xs)
 
 instance Taggable Rule where
@@ -61,9 +64,9 @@ emptyEnv = Just M.empty
 
 -- * The Prolog machinery
 data Result  =  Done Env
-             |  ApplyRules [(Rule, Result)]
+             |  ApplyRules [(Tag, Rule, Result)]
 
-type Proofs = [(String, Rule)]
+type Proofs = [(Tag, Rule)]
 
 class Subst t where
   subst :: Env -> t -> t
@@ -87,12 +90,12 @@ unify (t, u)  env@(Just m)  = uni (subst m t) (subst m u)
            |  x == y && length xs == length ys  = foldr unify env (zip xs ys)
            |  otherwise                         = Nothing
 
-solve :: [Rule] -> Maybe Env -> Int -> [Term] -> Result
-solve _      Nothing   _  _       = ApplyRules []
-solve _      (Just e)  _  []      = Done e
-solve rules  e         n  (t:ts)  = ApplyRules
-  [  (rule, solve rules nextenv (n+1) (cs ++ ts))
-  |  rule@(c :<-: cs)  <- tag n rules
+solve :: [Rule] -> Maybe Env  -> [TaggedTerm] -> Result
+solve _      Nothing   _        = ApplyRules []
+solve _      (Just e)    []     = Done e
+solve rules  e  ((tg,t):ts)  = ApplyRules
+  [  (tg, rule, solve rules nextenv (zip (map (\ n -> tg ++ "." ++ show n) [1..]) cs ++ ts))
+  |  rule@(c :<-: cs)  <- tag tg rules
   ,  nextenv@(Just _)  <- [unify (t, c) e]
   ]
 
@@ -101,12 +104,11 @@ solve rules  e         n  (t:ts)  = ApplyRules
 -- rules that were applied on the path which was traversed from the
 -- root to the current node. At a successful leaf this contains the
 -- full proof.
-enumerateDepthFirst :: Proofs -> [String] -> Result -> [(Proofs, Env)]
-enumerateDepthFirst proofs _ (Done env) = [(proofs, env)]
-enumerateDepthFirst proofs (pr:prefixes) (ApplyRules bs) =
-  [ s  |  (rule@(c :<-: cs), subTree) <- bs
-       ,  let extraPrefixes = take (length cs) (map (\i -> pr ++ "." ++ show i) [1 ..])
-       ,  s <- enumerateDepthFirst ((pr, rule):proofs) (extraPrefixes ++ prefixes) subTree
+enumerateDepthFirst :: Proofs -> Result -> [(Proofs, Env)]
+enumerateDepthFirst proofs  (Done env) = [(proofs, env)]
+enumerateDepthFirst proofs  (ApplyRules bs) =
+  [ s  |  (tag, rule@(c :<-: cs), subTree) <- bs
+       ,  s <- enumerateDepthFirst ((tag, rule):proofs) subTree
   ]
 
 {-
