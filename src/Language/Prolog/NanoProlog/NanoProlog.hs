@@ -15,7 +15,7 @@ import            System.IO
 -- interpreter loop
 main :: IO ()
 main = do  hSetBuffering stdin LineBuffering
-           putStr "File with rules? "
+           putStrLn "File with rules?"
            fn  <- getLine
            s   <- readFile fn
            let (rules, errors) = startParse (pList pRule) s
@@ -28,12 +28,12 @@ main = do  hSetBuffering stdin LineBuffering
 -- | `loop` ask for a goal, and enuartes all solutions found, each preceded by
 -- a trace conatining the rules applied in a tree-like fashion
 loop :: [Rule] -> IO ()
-loop rules = do  putStr "goal? "
+loop rules = do  putStrLn "goal? "
                  s <- getLine
                  unless (s == "quit") $
                    do  let (goal, errors) = startParse pFun s
                        if null errors
-                         then  printSolutions (solve rules emptyEnv 0 [goal])
+                         then  printSolutions (solve rules emptyEnv [("0",goal)])
                          else  do  putStrLn "Some goals were expected:"
                                    mapM_ print errors
                        loop rules
@@ -55,4 +55,4 @@ printSolutions result = sequence_
          putStr "substitution: "
          putStrLn (show' env)
          void getLine
-  |  (proof, env) <- enumerateDepthFirst [] ["0"] result ]
+  |  (proof, env) <- enumerateDepthFirst [] result ]
