@@ -18,7 +18,7 @@ main = do  hSetBuffering stdin LineBuffering
            putStr "File with rules? "
            fn  <- getLine
            s   <- readFile fn
-           let (rules, errors) = startParse (pList pRule)  s
+           let (rules, errors) = startParse (pList pRule) s
            if null errors  then  do  mapM_ print rules
                                      loop rules
                            else  do  putStrLn "No rules parsed"
