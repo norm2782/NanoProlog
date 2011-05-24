@@ -1,5 +1,5 @@
 Name:                NanoProlog
-Version:             0.1.2
+Version:             0.2
 Synopsis:            Very small  interpreter for a Prolog-like language
 Description:         This package was developed to demonstrate the ideas behind
                      the Prolog language. It contains a very small interpreter
@@ -10,11 +10,12 @@ Description:         This package was developed to demonstrate the ideas behind
 License:             BSD3
 license-file:        LICENSE
 Author:              Doaitse Swierstra, Jurriën Stutterheim
-Maintainer:          Jurriën Stutterheim
+Maintainer:          j.stutterheim@uu.nl
 Stability:           Experimental
 Category:            Language
 Build-type:          Simple
 Cabal-version:       >= 1.6
+Extra-Source-Files:  README, royals.pro
 
 Source-repository head
   Type:       git
@@ -25,7 +26,8 @@ Executable nano-prolog
   Main-is: Main.hs
 
   Build-depends:
-    base >= 4 && < 5
+    base >= 4 && < 5,
+    uu-parsinglib >= 2.7.1
 
 Library
   Build-Depends:	  base >= 4.0 && < 5.0,
@@ -33,4 +35,7 @@ Library
                     ListLike == 3.1.*,
                     containers == 0.4.*
   Hs-Source-Dirs:   src
-  Exposed-modules:  Language.Prolog.NanoProlog.Lib
+  Exposed-modules:  Language.Prolog.NanoProlog.NanoProlog,
+                    Language.Prolog.NanoProlog.Interpreter
+  Extensions:       Rank2Types, FlexibleContexts, TypeSynonymInstances,
+                    FlexibleInstances

@@ -3,7 +3,7 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
 
-module Language.Prolog.NanoProlog.Lib (
+module Language.Prolog.NanoProlog.NanoProlog (
      LowerCase
   ,  Result(..)
   ,  Rule((:<-:))
@@ -119,8 +119,8 @@ enumerateBreadthFirst :: Proofs -> [String] -> Result -> [(Proofs, Env)]
 -- | `printEnv` prints a single solution, showing only the variables
 -- that were introduced in the original goal
 show' :: Env -> String
-show' env = intercalate ", " . filter (not.null) . map  showBdg $ M.assocs env
-  where  showBdg (x, t)  | isGlobVar x =  x ++ " <- "++ showTerm t
+show' env = intercalate ", " . filter (not.null) . map showBdg $ M.assocs env
+  where  showBdg (x, t)  | isGlobVar x =  x ++ " <- " ++ showTerm t
                          | otherwise = ""
          showTerm t@(Var _)  = showTerm (subst env t)
          showTerm (Fun f []) = f
