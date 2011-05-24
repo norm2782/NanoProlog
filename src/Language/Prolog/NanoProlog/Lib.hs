@@ -94,9 +94,8 @@ solve :: [Rule] -> Maybe Env  -> [TaggedTerm] -> Result
 solve _      Nothing   _        = ApplyRules []
 solve _      (Just e)    []     = Done e
 solve rules  e  ((tg,t):ts)  = ApplyRules
-  [  (tg, rule, solve rules nextenv (zip (map (\ n -> tg ++ "." ++ show n) [1..]) cs ++ ts))
+  [  (tg, rule, solve rules (unify (t, c) e) ( (map (( tg ++). ('.' :). show) [1..]) `zip` cs ++ ts))
   |  rule@(c :<-: cs)  <- tag tg rules
-  ,  nextenv@(Just _)  <- [unify (t, c) e]
   ]
 
 -- ** Printing the solutions | `enumerateBreadthFirst` performs a
