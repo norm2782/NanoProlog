@@ -4,7 +4,8 @@
 {-# LANGUAGE FlexibleInstances #-}
 
 module Language.Prolog.NanoProlog.NanoProlog (
-     LowerCase
+     Env
+  ,  LowerCase
   ,  Result(..)
   ,  Rule((:<-:))
   ,  Subst(..)
@@ -81,7 +82,7 @@ instance Subst Term where
 instance Subst Rule where
   subst env (c :<-: cs) = subst env c :<-: subst env cs
 
-unify :: (Term, Term) -> Maybe Env-> Maybe Env
+unify :: (Term, Term) -> Maybe Env -> Maybe Env
 unify _       Nothing       = Nothing
 unify (t, u)  env@(Just m)  = uni (subst m t) (subst m u)
   where  uni  (Var x)  y        = Just (M.insert x  y  m)
@@ -90,12 +91,14 @@ unify (t, u)  env@(Just m)  = uni (subst m t) (subst m u)
            |  x == y && length xs == length ys  = foldr unify env (zip xs ys)
            |  otherwise                         = Nothing
 
-solve :: [Rule] -> Maybe Env  -> [TaggedTerm] -> Result
-solve _      Nothing   _        = ApplyRules []
-solve _      (Just e)    []     = Done e
-solve rules  e  ((tg,t):ts)  = ApplyRules
-  [  (tg, rule, solve rules nextenv (zip (map (\ n -> tg ++ "." ++ show n) [1..]) cs ++ ts))
-  |  rule@(c :<-: cs)  <- tag tg rules
+solve :: [Rule] -> Maybe Env -> [TaggedTerm] -> Result
+solve _    Nothing   _            = ApplyRules []
+solve _    (Just e)  []           = Done e
+solve rls  e         ((tg,t):ts)  = ApplyRules
+  [  let  tagged   = map (\n -> tg ++ "." ++ show n) [1..]
+          result'  = solve rls nextenv (zip tagged cs ++ ts)
+     in   (tg, rule, result')
+  |  rule@(c :<-: cs)  <- tag tg rls
   ,  nextenv@(Just _)  <- [unify (t, c) e]
   ]
 
@@ -105,8 +108,8 @@ solve rules  e  ((tg,t):ts)  = ApplyRules
 -- root to the current node. At a successful leaf this contains the
 -- full proof.
 enumerateDepthFirst :: Proofs -> Result -> [(Proofs, Env)]
-enumerateDepthFirst proofs  (Done env) = [(proofs, env)]
-enumerateDepthFirst proofs  (ApplyRules bs) =
+enumerateDepthFirst proofs (Done env)       = [(proofs, env)]
+enumerateDepthFirst proofs (ApplyRules bs)  =
   [ s  |  (tag, rule@(c :<-: cs), subTree) <- bs
        ,  s <- enumerateDepthFirst ((tag, rule):proofs) subTree
   ]
@@ -121,11 +124,11 @@ enumerateBreadthFirst :: Proofs -> [String] -> Result -> [(Proofs, Env)]
 -- that were introduced in the original goal
 show' :: Env -> String
 show' env = intercalate ", " . filter (not.null) . map showBdg $ M.assocs env
-  where  showBdg (x, t)  | isGlobVar x =  x ++ " <- " ++ showTerm t
-                         | otherwise = ""
-         showTerm t@(Var _)  = showTerm (subst env t)
-         showTerm (Fun f []) = f
-         showTerm (Fun f ts) = f ++ "(" ++ intercalate ", " (map showTerm ts) ++ ")"
+  where  showBdg (x, t)  | isGlobVar x  = x ++ " <- " ++ showTerm t
+                         | otherwise    = ""
+         showTerm t@(Var _)   = showTerm (subst env t)
+         showTerm (Fun f [])  = f
+         showTerm (Fun f ts)  = f ++ "(" ++ intercalate ", " (map showTerm ts) ++ ")"
          isGlobVar x = head x `elem` ['A'..'Z'] && last x `notElem` ['0'..'9']
 
 instance Show Term where
