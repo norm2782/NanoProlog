@@ -117,7 +117,7 @@ enumerateDepthFirst proofs (ApplyRules bs)  =
 {-
 -- | `enumerateBreadthFirst` is still undefined, and is left as an
 -- exercise to the JCU students
-enumerateBreadthFirst :: Proofs -> [String] -> Result -> [(Proofs, Env)]
+enumerateBreadthFirst :: Proofs -> Result -> [(Proofs, Env)]
 -}
 
 -- | `printEnv` prints a single solution, showing only the variables
@@ -144,14 +144,14 @@ showCommas :: Show a => [a] -> String
 showCommas l = intercalate ", " (map show l)
 
 -- ** Parsing Rules and Terms
-startParse :: (ListLike s b, Show b)  => P (Str b s LineColPos) a -> s
-                                      -> (a, [Error LineColPos])
+startParse :: (ListLike s b, Show b)  =>  P (Str b s LineColPos) a -> s
+                                      ->  (a, [Error LineColPos])
 startParse p inp  =  parse ((,) <$> p <*> pEnd)
                   $  createStr (LineColPos 0 0 0) inp
 
 pTerm, pVar, pFun :: Parser Term
 pTerm  = pVar  <|>  pFun
-pVar   = Var   <$>  lexeme (pList1 pUpper)
+pVar   = Var   <$>  lexeme ((++) <$> pList1 pUpper <*> pList pDigit)
 pFun   = Fun   <$>  pLowerCase <*> (pParens pTerms `opt` [])
   where  pLowerCase :: Parser String
          pLowerCase = (:) <$> pLower <*> lexeme (pList (pLetter <|> pDigit))
