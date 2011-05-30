@@ -4,7 +4,8 @@
 {-# LANGUAGE FlexibleInstances #-}
 
 module Language.Prolog.NanoProlog.NanoProlog (
-     LowerCase
+     Env
+  ,  LowerCase
   ,  Result(..)
   ,  Rule((:<-:))
   ,  Subst(..)
@@ -81,7 +82,7 @@ instance Subst Term where
 instance Subst Rule where
   subst env (c :<-: cs) = subst env c :<-: subst env cs
 
-unify :: (Term, Term) -> Maybe Env-> Maybe Env
+unify :: (Term, Term) -> Maybe Env -> Maybe Env
 unify _       Nothing       = Nothing
 unify (t, u)  env@(Just m)  = uni (subst m t) (subst m u)
   where  uni  (Var x)  y        = Just (M.insert x  y  m)
@@ -104,27 +105,27 @@ solve rules  e  ((tg,t):ts)  = ApplyRules
 -- root to the current node. At a successful leaf this contains the
 -- full proof.
 enumerateDepthFirst :: Proofs -> Result -> [(Proofs, Env)]
-enumerateDepthFirst proofs  (Done env) = [(proofs, env)]
-enumerateDepthFirst proofs  (ApplyRules bs) =
-  [ s  |  (tag, rule@(c :<-: cs), subTree) <- bs
-       ,  s <- enumerateDepthFirst ((tag, rule):proofs) subTree
+enumerateDepthFirst proofs (Done env)       = [(proofs, env)]
+enumerateDepthFirst proofs (ApplyRules bs)  =
+  [ s  |  (tag', rule, subTree) <- bs
+       ,  s <- enumerateDepthFirst ((tag', rule):proofs) subTree
   ]
 
 {-
 -- | `enumerateBreadthFirst` is still undefined, and is left as an
 -- exercise to the JCU students
-enumerateBreadthFirst :: Proofs -> [String] -> Result -> [(Proofs, Env)]
+enumerateBreadthFirst :: Proofs -> Result -> [(Proofs, Env)]
 -}
 
 -- | `printEnv` prints a single solution, showing only the variables
 -- that were introduced in the original goal
 show' :: Env -> String
 show' env = intercalate ", " . filter (not.null) . map showBdg $ M.assocs env
-  where  showBdg (x, t)  | isGlobVar x =  x ++ " <- " ++ showTerm t
-                         | otherwise = ""
-         showTerm t@(Var _)  = showTerm (subst env t)
-         showTerm (Fun f []) = f
-         showTerm (Fun f ts) = f ++ "(" ++ intercalate ", " (map showTerm ts) ++ ")"
+  where  showBdg (x, t)  | isGlobVar x  = x ++ " <- " ++ showTerm t
+                         | otherwise    = ""
+         showTerm t@(Var _)   = showTerm (subst env t)
+         showTerm (Fun f [])  = f
+         showTerm (Fun f ts)  = f ++ "(" ++ intercalate ", " (map showTerm ts) ++ ")"
          isGlobVar x = head x `elem` ['A'..'Z'] && last x `notElem` ['0'..'9']
 
 instance Show Term where
@@ -140,14 +141,17 @@ showCommas :: Show a => [a] -> String
 showCommas l = intercalate ", " (map show l)
 
 -- ** Parsing Rules and Terms
-startParse :: (ListLike s b, Show b)  => P (Str b s LineColPos) a -> s
-                                      -> (a, [Error LineColPos])
+startParse :: (ListLike s b, Show b)  =>  P (Str b s LineColPos) a -> s
+                                      ->  (a, [Error LineColPos])
 startParse p inp  =  parse ((,) <$> p <*> pEnd)
                   $  createStr (LineColPos 0 0 0) inp
 
+pSepDot :: Parser String -> Parser [String]
+pSepDot p = (:) <$> p <*> pFoldr list_alg ((:) <$> pDot <*> p)
+
 pTerm, pVar, pFun :: Parser Term
 pTerm  = pVar  <|>  pFun
-pVar   = Var   <$>  lexeme (pList1 pUpper)
+pVar   = Var   <$>  lexeme ((++) <$> pList1 pUpper <*> (concat <$> pSepDot (pList1 pDigit) <|> pure []))
 pFun   = Fun   <$>  pLowerCase <*> (pParens pTerms `opt` [])
   where  pLowerCase :: Parser String
          pLowerCase = (:) <$> pLower <*> lexeme (pList (pLetter <|> pDigit))
