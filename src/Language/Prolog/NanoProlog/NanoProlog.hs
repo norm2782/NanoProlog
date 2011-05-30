@@ -95,7 +95,7 @@ solve :: [Rule] -> Maybe Env -> [TaggedTerm] -> Result
 solve _    Nothing   _            = ApplyRules []
 solve _    (Just e)  []           = Done e
 solve rls  e         ((tg,t):ts)  = ApplyRules
-  [  let  tagged   = map (\n -> tg ++ "." ++ show n) [1..]
+  [  let  tagged   = map (\n -> tg ++ "." ++ show n) ([1..] :: [Int])
           result'  = solve rls nextenv (zip tagged cs ++ ts)
      in   (tg, rule, result')
   |  rule@(c :<-: cs)  <- tag tg rls
@@ -110,8 +110,8 @@ solve rls  e         ((tg,t):ts)  = ApplyRules
 enumerateDepthFirst :: Proofs -> Result -> [(Proofs, Env)]
 enumerateDepthFirst proofs (Done env)       = [(proofs, env)]
 enumerateDepthFirst proofs (ApplyRules bs)  =
-  [ s  |  (tag, rule@(c :<-: cs), subTree) <- bs
-       ,  s <- enumerateDepthFirst ((tag, rule):proofs) subTree
+  [ s  |  (tag', rule, subTree) <- bs
+       ,  s <- enumerateDepthFirst ((tag', rule):proofs) subTree
   ]
 
 {-
@@ -149,9 +149,12 @@ startParse :: (ListLike s b, Show b)  =>  P (Str b s LineColPos) a -> s
 startParse p inp  =  parse ((,) <$> p <*> pEnd)
                   $  createStr (LineColPos 0 0 0) inp
 
+pSepDot :: Parser String -> Parser [String]
+pSepDot p = (:) <$> p <*> pFoldr list_alg ((:) <$> pDot <*> p)
+
 pTerm, pVar, pFun :: Parser Term
 pTerm  = pVar  <|>  pFun
-pVar   = Var   <$>  lexeme ((++) <$> pList1 pUpper <*> pList pDigit)
+pVar   = Var   <$>  lexeme ((++) <$> pList1 pUpper <*> (concat <$> pSepDot (pList1 pDigit) <|> pure []))
 pFun   = Fun   <$>  pLowerCase <*> (pParens pTerms `opt` [])
   where  pLowerCase :: Parser String
          pLowerCase = (:) <$> pLower <*> lexeme (pList (pLetter <|> pDigit))

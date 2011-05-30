@@ -44,8 +44,7 @@ loop rules = do  putStrLn "goal? "
 printSolutions ::  Result -> IO ()
 printSolutions result = sequence_
   [  do  sequence_  [  putStrLn (prefix ++ " " ++ show (subst env pr))
-                    |  (prefix, pr@(p :<-: pp)) <- reverse proof
---                  ,  length pp >0
+                    |  (prefix, pr) <- reverse proof
                     ]
          putStr "substitution: "
          putStrLn (show' env)
