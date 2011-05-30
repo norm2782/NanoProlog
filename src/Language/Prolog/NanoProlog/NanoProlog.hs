@@ -101,9 +101,9 @@ unify (t, u)  env@(Just m)  = uni (subst m t) (subst m u)
            |  otherwise                         = Nothing
 
 solve :: [Rule] -> Maybe Env  -> [TaggedTerm] -> Result
-solve _      Nothing   _        = ApplyRules []
-solve _      (Just e)    []     = Done e
-solve rules  e  ((tg,t):ts)  = ApplyRules
+solve _      Nothing   _            = ApplyRules []
+solve _      (Just e)  []           = Done e
+solve rules  e         ((tg,t):ts)  = ApplyRules
   [  let  cts = map ((tg ++) . ('.' :) . show) ([1..] :: [Int]) `zip` cs ++ ts
      in   (tg, rule, solve rules (unify (t, c) e) cts)
   |  rule@(c :<-: cs)  <- tag tg rules
