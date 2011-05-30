@@ -104,7 +104,8 @@ solve :: [Rule] -> Maybe Env  -> [TaggedTerm] -> Result
 solve _      Nothing   _        = ApplyRules []
 solve _      (Just e)    []     = Done e
 solve rules  e  ((tg,t):ts)  = ApplyRules
-  [  (tg, rule, solve rules (unify (t, c) e) ( (map (( tg ++). ('.' :). show) [1..]) `zip` cs ++ ts))
+  [  let  cts = map ((tg ++) . ('.' :) . show) ([1..] :: [Int]) `zip` cs ++ ts
+     in   (tg, rule, solve rules (unify (t, c) e) cts)
   |  rule@(c :<-: cs)  <- tag tg rules
   ]
 
