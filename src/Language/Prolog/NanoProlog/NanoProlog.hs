@@ -21,6 +21,7 @@ module Language.Prolog.NanoProlog.NanoProlog (
   ,  solve
   ,  startParse
   ,  unify
+  ,  matches
   ) where
 
 import            Data.ListLike.Base (ListLike)
@@ -81,6 +82,14 @@ instance Subst Term where
 
 instance Subst Rule where
   subst env (c :<-: cs) = subst env c :<-: subst env cs
+
+matches :: (Term, Term) -> Maybe Env -> Maybe Env
+matches _       Nothing       = Nothing
+matches (t, u)  env@(Just m)  = match(subst m t) u
+  where  match  (Var x)  y        = Just (M.insert x  y  m)
+         match  (Fun x xs) (Fun y ys)
+             |  x == y && length xs == length ys  = foldr matches env (zip xs ys)
+         match _ _                = Nothing
 
 unify :: (Term, Term) -> Maybe Env -> Maybe Env
 unify _       Nothing       = Nothing
