@@ -1,5 +1,5 @@
 Name:                NanoProlog
-Version:             0.2.1
+Version:             0.2.2
 Synopsis:            Very small  interpreter for a Prolog-like language
 Description:         This package was developed to demonstrate the ideas behind
                      the Prolog language. It contains a very small interpreter
@@ -31,6 +31,7 @@ Executable nano-prolog
 
 Library
   Build-Depends:	  base >= 4.0 && < 5.0,
+                    haskell98 >= 1.1.0.1,
                     uu-parsinglib >= 2.7.1,
                     ListLike == 3.1.*,
                     containers == 0.4.*

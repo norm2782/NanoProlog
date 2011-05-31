@@ -2,6 +2,7 @@ module Language.Prolog.NanoProlog.Interpreter where
 
 import            Language.Prolog.NanoProlog.NanoProlog
 import            Text.ParserCombinators.UU
+import            System (getArgs)
 import            System.IO
 
 -- * Running the Interpreter
@@ -9,10 +10,13 @@ import            System.IO
 -- | The `main` program prompt for a file with Prolog rules and call the main
 -- interpreter loop
 run :: IO ()
-run =  do  hSetBuffering stdin LineBuffering
-           putStrLn "File with rules?"
-           fn  <- getLine
-           s   <- readFile fn
+run =  do  args  <- getArgs
+           fn    <- case args of
+                      []     -> do  hSetBuffering stdin LineBuffering
+                                    putStrLn "File with rules?"
+                                    getLine
+                      (x:_)  -> return x
+           s     <- readFile fn
            let (rules, errors) = startParse (pList pRule) s
            if null errors  then  do  mapM_ print rules
                                      loop rules
