@@ -133,15 +133,19 @@ show' :: Env -> String
 show' env = intercalate ", " . filter (not.null) . map showBdg $ M.assocs env
   where  showBdg (x, t)  | isGlobVar x  = x ++ " <- " ++ showTerm t
                          | otherwise    = ""
-         showTerm t@(Var _)   = showTerm (subst env t)
-         showTerm (Fun f [])  = f
-         showTerm (Fun f ts)  = f ++ "(" ++ intercalate ", " (map showTerm ts) ++ ")"
+         showTerm  t@(Var _)   = showTerm (subst env t)
+         showTerm  (Fun f [])  = f
+         showTerm  (Fun "->" [f,a]) = showTerm f ++ " -> " ++ showTerm a 
+         showTerm  (Fun "[]" [l])   = "[" ++ showTerm l ++ "]"         
+         showTerm  (Fun f ts)  = f ++ "(" ++ intercalate ", " (map showTerm ts) ++ ")"
          isGlobVar x = head x `elem` ['A'..'Z'] && last x `notElem` ['0'..'9']
 
 instance Show Term where
-  show (Var  i)       = i
-  show (Fun  i []  )  = i
-  show (Fun  i ts  )  = i ++ "(" ++ showCommas ts ++ ")"
+  show  (Var  i)         = i
+  show  (Fun  i []  )    = i
+  show  (Fun "->" [f,a]) = show f ++ " -> " ++ show a 
+  show  (Fun "[]" [l])   = "[" ++ show l ++ "]"
+  show  (Fun  i ts  )    = i ++ "(" ++ showCommas ts ++ ")"
 
 instance Show Rule where
   show (t :<-: []  ) = show t ++ "."
