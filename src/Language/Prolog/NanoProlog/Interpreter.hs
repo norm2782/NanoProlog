@@ -51,6 +51,6 @@ printSolutions result = sequence_
                     |  (prefix, pr) <- reverse proof
                     ]
          putStr "substitution: "
-         putStrLn (show' env)
+         putStrLn (show env)
          void getLine
   |  (proof, env) <- enumerateDepthFirst [] result ]

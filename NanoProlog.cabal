@@ -1,5 +1,5 @@
 Name:                NanoProlog
-Version:             0.2.2
+Version:             0.2.3
 Synopsis:            Very small  interpreter for a Prolog-like language
 Description:         This package was developed to demonstrate the ideas behind
                      the Prolog language. It contains a very small interpreter
@@ -7,6 +7,9 @@ Description:         This package was developed to demonstrate the ideas behind
                      own. It reads a file with definitions, and then prompts
                      for a goal. All possibe solutions are printed, preceded by
                      a tree showing which rules were applied in which order.
+                     .
+                     The file @royals.pro@ contains a description of part of the Dutch royal family, whereas the file 
+                     @tc.pro@ shows unification at work in a very small type inferencer.
 License:             BSD3
 license-file:        LICENSE
 Author:              Doaitse Swierstra, Jurriën Stutterheim
@@ -15,7 +18,7 @@ Stability:           Experimental
 Category:            Language
 Build-type:          Simple
 Cabal-version:       >= 1.6
-Extra-Source-Files:  README, royals.pro
+Extra-Source-Files:  README, royals.pro, tc.pro
 
 Source-repository head
   Type:       git
