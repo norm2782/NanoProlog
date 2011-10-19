@@ -2,7 +2,7 @@ module Language.Prolog.NanoProlog.Interpreter where
 
 import            Language.Prolog.NanoProlog.NanoProlog
 import            Text.ParserCombinators.UU
-import            System (getArgs)
+import            System.Environment
 import            System.IO
 
 -- * Running the Interpreter

@@ -33,8 +33,7 @@ Executable nano-prolog
     uu-parsinglib >= 2.7.1
 
 Library
-  Build-Depends:	  base >= 4.0 && < 5.0,
-                    haskell98 >= 1.1.0.1,
+  Build-Depends:    base >= 4.0 && < 5.0,
                     uu-parsinglib >= 2.7.1,
                     ListLike == 3.1.*,
                     containers == 0.4.*
