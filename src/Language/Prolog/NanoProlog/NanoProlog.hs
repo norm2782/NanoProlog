@@ -13,6 +13,8 @@ module Language.Prolog.NanoProlog.NanoProlog (
   ,  Subst(..)
   ,  Taggable(..)
   ,  Term(..)
+  ,  Proofs
+  ,  TaggedTerm
   ,  emptyEnv
   ,  enumerateDepthFirst
   ,  matches

@@ -1,5 +1,5 @@
 Name:                NanoProlog
-Version:             0.2.3.2
+Version:             0.2.3.3
 Synopsis:            Very small  interpreter for a Prolog-like language
 Description:         This package was developed to demonstrate the ideas behind
                      the Prolog language. It contains a very small interpreter
