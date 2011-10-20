@@ -4,8 +4,10 @@
 {-# LANGUAGE FlexibleInstances #-}
 
 module Language.Prolog.NanoProlog.NanoProlog (
-     Env
+     Env(..)
+  ,  UpperCase
   ,  LowerCase
+  ,  Tag
   ,  Result(..)
   ,  Rule((:<-:))
   ,  Subst(..)
@@ -153,7 +155,7 @@ showCommas :: Show a => [a] -> String
 showCommas l = intercalate ", " (map show l)
 
 -- ** Parsing Rules and Terms
-startParse :: (ListLike s b, Show b)  =>  
+startParse :: (ListLike s b, Show b)  =>
               P (Str b s LineColPos) a -> s ->  (a, [Error LineColPos])
 startParse p inp  =  parse ((,) <$> p <*> pEnd)
                   $  createStr (LineColPos 0 0 0) inp
