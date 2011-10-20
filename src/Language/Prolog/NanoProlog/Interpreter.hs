@@ -4,6 +4,7 @@ import            Language.Prolog.NanoProlog.NanoProlog
 import            Text.ParserCombinators.UU
 import            System.Environment
 import            System.IO
+import            Data.List
 
 -- * Running the Interpreter
 -- ** The main interpreter
@@ -34,6 +35,7 @@ loop rules = do  putStrLn "goal? "
                        if null errors
                          then  printSolutions (solve rules emptyEnv [("0",goal)])
                          else  do  putStrLn "Some goals were expected:"
+                                   print  goal
                                    mapM_ print errors
                        loop rules
 
@@ -46,11 +48,9 @@ loop rules = do  putStrLn "goal? "
 -- directly stemming from the data base are not printed. This makes
 -- the proofs much shorter, but a bit less complete.
 printSolutions ::  Result -> IO ()
-printSolutions result = sequence_
-  [  do  sequence_  [  putStrLn (prefix ++ " " ++ show (subst env pr))
-                    |  (prefix, pr) <- reverse proof
-                    ]
-         putStr "substitution: "
-         putStrLn (show env)
-         void getLine
-  |  (proof, env) <- enumerateDepthFirst [] result ]
+printSolutions result = do sequence_ (intersperse (do {putStr "next?";void getLine})
+                             [  do mapM_ (\(prefix, pr) ->  putStrLn (prefix ++ " " ++ show (subst env pr)))
+                                         (reverse proof)
+                                   putStr "substitution: "
+                                   putStrLn (show env)
+                             |  (proof, env) <- enumerateDepthFirst [] result ])

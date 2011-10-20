@@ -146,9 +146,13 @@ instance Show Env where
 instance Show Term where
   show  (Var  i)         = i
   show  (Fun  i []  )    = i
-  show  (Fun "->" [f,a]) = "(" ++ show f ++ ")" ++ " -> " ++ show a 
-  show  (Fun "[]" [l])   = "[" ++ show l ++ "]"
-  show  (Fun  i ts  )    = i ++ "(" ++ showCommas ts ++ ")"
+  show  (Fun "->"   [f@(Fun "->" _)  ,a]) = "(" ++ show f ++ ")" ++ " -> " ++ show a 
+  show  (Fun "->"   [f               ,a]) =        show f ++        " -> " ++ show a 
+  show  (Fun "cons" [h@(Fun "->"   _),t]) = "(" ++ show h ++ ")" ++ ":"    ++ show t 
+  show  (Fun "cons" [h@(Fun "cons" _),t]) = "(" ++ show h ++ ")" ++ ":"    ++ show t 
+  show  (Fun "cons" [h               ,t]) =        show h ++        ":"    ++ show t 
+  show  (Fun "[]" [l])                    = "[" ++ show l ++ "]"
+  show  (Fun  i ts  )                     = i ++ "(" ++ showCommas ts ++ ")"
 
 instance Show Rule where
   show (t :<-: []  ) = show t ++ "."
@@ -167,9 +171,8 @@ pSepDot :: Parser String -> Parser [String]
 pSepDot p = (:) <$> p <*> pList ((:) <$> pDot <*> p)
 
 pTerm, pFactor, pCons, pVar, pFun :: Parser  Term
-pTerm = pChainr ((\ f a -> Fun "->" [f, a]) <$ pToken "->") pCons 
-pCons =     (\a b -> Fun "cons" [a, b]) <$> pFactor <* pToken ":" <*> pCons 
-        <|> pFactor
+pTerm = pChainr ((\ f a -> Fun "->"   [f, a]) <$ pToken "->") pCons 
+pCons = pChainr ((\ h t -> Fun "cons" [h, t]) <$ pToken ":" ) pFactor
 pFactor  =     pVar
           <|>  pFun
           <|>  pParens pTerm
