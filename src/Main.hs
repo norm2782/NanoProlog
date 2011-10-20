@@ -1,6 +1,6 @@
 module Main where
 
-import            Language.Prolog.NanoProlog.Interpreter (run)
+import Language.Prolog.NanoProlog.Interpreter (run)
 
 -- * Running the Interpreter
 -- ** The main interpreter
