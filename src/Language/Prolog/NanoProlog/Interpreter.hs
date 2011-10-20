@@ -30,7 +30,7 @@ loop :: [Rule] -> IO ()
 loop rules = do  putStrLn "goal? "
                  s <- getLine
                  unless (s == "quit") $
-                   do  let (goal, errors) = startParse pFun s
+                   do  let (goal, errors) = startParse pTerm s
                        if null errors
                          then  printSolutions (solve rules emptyEnv [("0",goal)])
                          else  do  putStrLn "Some goals were expected:"

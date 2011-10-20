@@ -19,6 +19,7 @@ module Language.Prolog.NanoProlog.NanoProlog (
   ,  pFun
   ,  pRule
   ,  pTerm
+  ,  pCons
   ,  pTerms
   ,  solve
   ,  startParse
@@ -163,8 +164,10 @@ startParse p inp  =  parse ((,) <$> p <*> pEnd)
 pSepDot :: Parser String -> Parser [String]
 pSepDot p = (:) <$> p <*> pList ((:) <$> pDot <*> p)
 
-pTerm, pFactor, pVar, pFun :: Parser  Term
-pTerm = pChainr ((\ f a -> Fun "->" [f, a]) <$ pToken "->") pFactor
+pTerm, pFactor, pCons, pVar, pFun :: Parser  Term
+pTerm = pChainr ((\ f a -> Fun "->" [f, a]) <$ pToken "->") pCons 
+pCons =     (\a b -> Fun "cons" [a, b]) <$> pFactor <* pToken ":" <*> pCons 
+        <|> pFactor
 pFactor  =     pVar
           <|>  pFun
           <|>  pParens pTerm
