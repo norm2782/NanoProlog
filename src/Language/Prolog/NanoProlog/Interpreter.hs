@@ -1,6 +1,7 @@
 module Language.Prolog.NanoProlog.Interpreter where
 
 import            Language.Prolog.NanoProlog.NanoProlog
+import            Language.Prolog.NanoProlog.Parser
 import            Text.ParserCombinators.UU
 import            System.Environment
 import            System.IO
@@ -28,16 +29,17 @@ run =  do  args  <- getArgs
 -- | `loop` ask for a goal, and enuartes all solutions found, each preceded by
 -- a trace conatining the rules applied in a tree-like fashion
 loop :: [Rule] -> IO ()
-loop rules = do  putStrLn "goal? "
-                 s <- getLine
-                 unless (s == "quit") $
-                   do  let (goal, errors) = startParse pTerm s
-                       if null errors
-                         then  printSolutions (solve rules emptyEnv [("0",goal)])
-                         else  do  putStrLn "Some goals were expected:"
-                                   print  goal
-                                   mapM_ print errors
-                       loop rules
+loop rules = do
+  putStrLn "goal? "
+  s <- getLine
+  unless (s == "quit") $
+    do  let (goal, errors) = startParse pTerm s
+        if null errors
+          then  printSolutions (solve rules emptyEnv [("0",goal)])
+          else  do  putStrLn "Some goals were expected:"
+                    print  goal
+                    mapM_ print errors
+        loop rules
 
 -- | `printSolutions` takes the result of a treewalk, which constructs
 -- all the proofs, and pairs them with their final
@@ -48,9 +50,10 @@ loop rules = do  putStrLn "goal? "
 -- directly stemming from the data base are not printed. This makes
 -- the proofs much shorter, but a bit less complete.
 printSolutions ::  Result -> IO ()
-printSolutions result = do sequence_ (intersperse (do {putStr "next?";void getLine})
-                             [  do mapM_ (\(prefix, pr) ->  putStrLn (prefix ++ " " ++ show (subst env pr)))
-                                         (reverse proof)
-                                   putStr "substitution: "
-                                   putStrLn (show env)
-                             |  (proof, env) <- enumerateDepthFirst [] result ])
+printSolutions result =
+  sequence_ (intersperse (putStr "next?" >> void getLine)
+    [  do mapM_ (\(prefix, pr) ->  putStrLn (prefix ++ " " ++ show (subst env pr)))
+                (reverse proof)
+          putStr "substitution: "
+          print env
+    |  (proof, env) <- enumerateDepthFirst [] result ])

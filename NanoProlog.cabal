@@ -1,5 +1,5 @@
 Name:                NanoProlog
-Version:             0.2.3.3
+Version:             0.3
 Synopsis:            Very small  interpreter for a Prolog-like language
 Description:         This package was developed to demonstrate the ideas behind
                      the Prolog language. It contains a very small interpreter
@@ -29,16 +29,23 @@ Executable nano-prolog
   Main-is: Main.hs
 
   Build-depends:
-    base >= 4 && < 5,
-    uu-parsinglib >= 2.7.1
+    base           >= 4      && < 5,
+    uu-parsinglib  >= 2.7.1  && < 2.8
+
+  GHC-Options:      -Wall -fwarn-tabs -funbox-strict-fields
+                    -fno-warn-unused-do-bind
 
 Library
-  Build-Depends:    base >= 4.0 && < 5.0,
-                    uu-parsinglib >= 2.7.1,
-                    ListLike == 3.1.*,
-                    containers == 0.4.*
+  Build-Depends:    base           >= 4.0    && < 5.0,
+                    uu-parsinglib  >= 2.7.1  && < 2.8,
+                    ListLike       == 3.1.*,
+                    containers     == 0.4.*
   Hs-Source-Dirs:   src
   Exposed-modules:  Language.Prolog.NanoProlog.NanoProlog,
+                    Language.Prolog.NanoProlog.Parser,
                     Language.Prolog.NanoProlog.Interpreter
   Extensions:       Rank2Types, FlexibleContexts, TypeSynonymInstances,
                     FlexibleInstances
+  GHC-Options:      -Wall -fwarn-tabs -funbox-strict-fields
+                    -fno-warn-unused-do-bind
+
