@@ -9,10 +9,17 @@ module Language.Prolog.NanoProlog.ParserUUTC (
 
 import            Control.Applicative ((<**>))
 import            Language.Prolog.NanoProlog.NanoProlog
-import            ParseLib.Abstract
+import            ParseLib.Abstract hiding ( token, symbol )
+import qualified  ParseLib.Abstract as PL  ( token, symbol )
 
 spaces :: Parser Char String
-spaces = many (choice [symbol ' ', symbol '\r', symbol '\n', symbol '\t'])
+spaces = many (choice [PL.symbol ' ', PL.symbol '\r', PL.symbol '\n', PL.symbol '\t'])
+
+token :: String -> Parser Char String
+token t = PL.token t <* spaces
+
+symbol :: Char -> Parser Char Char
+symbol c = PL.symbol c <* spaces
 
 lexeme :: Parser Char a -> Parser Char a
 lexeme p = p <* spaces
@@ -41,7 +48,7 @@ pFun =    Fun       <$> pLowerCase <*> (parenthesised pTerms `opt` [])
 pVar = Var <$> lexeme ((++) <$> many1 pUpper <*> (concat <$> pSepDot (many1 pDigit) `opt` []))
 
 pRange :: (Enum a, Eq a) => (a, a) -> Parser a a
-pRange (b, e) = choice (map symbol [b..e])
+pRange (b, e) = choice (map PL.symbol [b..e])
 
 pUpper, pLower, pLetter, pDigit :: Parser Char Char
 pUpper = pRange ('A', 'Z')
@@ -56,7 +63,8 @@ pTerms :: Parser Char [Term]
 pTerms = listOf pTerm (symbol ',')
 
 pRule :: Parser Char Rule
-pRule = (:<-:) <$> pFun <*> (token ":-" *> pTerms `opt` []) <* pDot
+pRule = (:<-:) <$> pFun <*> ((token ":-" *> pTerms) `opt` []) <* pDot
+-- pRule = (:<-:) <$> pFun <*> (pure []) <* pDot
 
 startParse :: Parser s a -> [s] -> [(a,[s])]
 startParse p = parse (p <* eof)
