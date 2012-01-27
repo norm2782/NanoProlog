@@ -64,7 +64,6 @@ pTerms = listOf pTerm (symbol ',')
 
 pRule :: Parser Char Rule
 pRule = (:<-:) <$> pFun <*> ((token ":-" *> pTerms) `opt` []) <* pDot
--- pRule = (:<-:) <$> pFun <*> (pure []) <* pDot
 
 startParse :: Parser s a -> [s] -> [(a,[s])]
 startParse p = parse (p <* eof)
