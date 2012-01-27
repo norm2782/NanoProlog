@@ -16,7 +16,7 @@ module Language.Prolog.NanoProlog.NanoProlog (
   ,  solve
   ,  unify
   ) where
-
+    
 import            Data.List (intercalate)
 import            Data.Map (Map)
 import qualified  Data.Map as M
@@ -55,7 +55,7 @@ emptyEnv = Just (Env M.empty)
 -- * The Prolog machinery
 -- The result type contains a search tree, where the branches represent an application of a rule, and the 
 -- leaves succesful results. Successes are  represented by their corresponding substitution.
--- A branch is represented by the tag used to loabel the rule that was applied, by the rule that was applied, 
+-- A branch is represented by the tag used to label the rule that was applied, by the rule that was applied, 
 -- and by the ``continution'' of the search.
 
 data Result  =  Done Env
