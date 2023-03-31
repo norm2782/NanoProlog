@@ -27,7 +27,7 @@ run =  do  args  <- getArgs
                                      run
 
 -- | `loop` ask for a goal, and enuartes all solutions found, each preceded by
--- a trace conatining the rules applied in a tree-like fashion
+-- a trace containing the rules applied in a tree-like fashion
 loop :: [Rule] -> IO ()
 loop rules = do
   putStrLn "goal? "
